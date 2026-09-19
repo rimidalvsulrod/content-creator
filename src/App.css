@@ -1,0 +1,365 @@
+:root {
+  --primary: #ff0000;
+  --dark-bg: #1a1a1a;
+  --light-text: #ffffff;
+  --accent: #333333;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--dark-bg);
+  color: var(--light-text);
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+.app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  padding: 1rem;
+  background: var(--accent);
+  text-align: center;
+  border-bottom: 1px solid #444;
+}
+
+.app-header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.app-header p {
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Setup View */
+.setup-view {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.setup-panel {
+  width: 100%;
+  max-width: 500px;
+  background: var(--accent);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.script-input,
+.pacing-control {
+  margin-bottom: 2rem;
+}
+
+.script-input label,
+.pacing-control label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.script-input textarea {
+  width: 100%;
+  padding: 1rem;
+  background: var(--dark-bg);
+  color: var(--light-text);
+  border: 1px solid #555;
+  border-radius: 8px;
+  font-family: monospace;
+  resize: vertical;
+  font-size: 0.9rem;
+}
+
+.script-input textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: #aaa;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.segment-count {
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 0.5rem;
+}
+
+.pacing-input {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pacing-input input[type="range"] {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: #555;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.pacing-input input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(255, 0, 0, 0.4);
+}
+
+.pacing-input input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(255, 0, 0, 0.4);
+}
+
+.pacing-value {
+  font-weight: 600;
+  min-width: 50px;
+  text-align: right;
+}
+
+.start-button {
+  width: 100%;
+  padding: 1rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 1rem;
+}
+
+.start-button:hover:not(:disabled) {
+  background: #cc0000;
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(255, 0, 0, 0.4);
+}
+
+.start-button:disabled {
+  background: #666;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.error-message {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(255, 0, 0, 0.2);
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  color: #ff6666;
+}
+
+/* Recording View */
+.recording-view {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.video-preview {
+  flex: 1;
+  width: 100%;
+  background: #000;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+/* Teleprompter */
+.teleprompter {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2rem;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.teleprompter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.segment-indicator {
+  background: rgba(0, 0, 0, 0.7);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.recording-indicator {
+  background: rgba(255, 0, 0, 0.8);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.teleprompter-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.teleprompter-content p {
+  background: rgba(0, 0, 0, 0.8);
+  padding: 2rem;
+  border-radius: 12px;
+  font-size: 1.5rem;
+  line-height: 1.6;
+  max-width: 90%;
+  font-weight: 500;
+}
+
+.teleprompter-footer {
+  text-align: center;
+}
+
+.teleprompter-footer p {
+  background: rgba(0, 0, 0, 0.7);
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  display: inline-block;
+}
+
+/* Recording Controls */
+.recording-controls {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.9);
+  border-top: 1px solid #555;
+  z-index: 20;
+}
+
+.progress-info {
+  margin-bottom: 1rem;
+}
+
+.progress-info p {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.3s;
+}
+
+.cancel-button {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-button:hover:not(:disabled) {
+  background: #cc0000;
+}
+
+.cancel-button:disabled {
+  background: #666;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Mobile/Tablet Responsive */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0.75rem;
+  }
+
+  .app-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .setup-panel {
+    padding: 1.5rem;
+    max-width: 95%;
+  }
+
+  .teleprompter-content p {
+    font-size: 1.2rem;
+    padding: 1.5rem;
+  }
+
+  .pacing-input input[type="range"]::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+  }
+}
