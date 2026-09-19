@@ -13,7 +13,6 @@ const SILENCE_LONG = 2000;
 const KEEP_TAIL = 0.45;
 const OVERRUN_MS = 3000;
 const PREROLL_MS = 500;
-const RATIO = 9 / 16;
 const P = new URLSearchParams(location.search);
 const DEMO = P.has('demo');
 const DEMO_WIDE = P.get('demo') === 'wide';
@@ -28,12 +27,15 @@ const cfg = {
   secs: +store.get('secs', 10),
   cam: store.get('cam', 'user'),
   light: store.get('light', '0') === '1',
+  frame: store.get('frame', 'wide'),
 };
+const FRAMES = { tight: 0, wide: 0.6, full: 1 };
+if (!(cfg.frame in FRAMES)) cfg.frame = 'wide';
 
 const el = {
   script: $('script'), wpm: $('wpm'), wpmOut: $('wpmOut'), secs: $('secs'), secsOut: $('secsOut'),
   autoRow: $('autoRow'), fixedRow: $('fixedRow'), summary: $('summary'),
-  stage: $('stage'), frame: $('frame'), preview: $('preview'), status: $('status'), line: $('line'), next: $('next'),
+  stage: $('stage'), frame: $('frame'), preview: $('preview'), view: $('view'), zoomBtn: $('zoomBtn'), status: $('status'), line: $('line'), next: $('next'),
   bigNum: $('bigNum'), fill: $('fill'), recBtn: $('recBtn'), stopBtn: $('stopBtn'), skipBtn: $('skipBtn'),
   redoBtn: $('redoBtn'), lightBtn: $('lightBtn'), hint: $('hint'), meter: $('meter'), micName: $('micName'), toast: $('toast'),
 };
@@ -197,25 +199,47 @@ async function matchMic(s) {
 
 function buildRecStream() {
   clearInterval(cropTimer);
-  const vt = stream.getVideoTracks()[0];
-  const { width: w, height: h } = vt.getSettings();
-  if (w && h && Math.abs(w / h - RATIO) < 0.012) {
-    recStream = stream; recDims = { w, h };
-    return;
-  }
-  const c = document.createElement('canvas');
-  c.width = 720; c.height = 1280;
+  const v = el.preview;
+  const big = Math.max(v.videoWidth, v.videoHeight) >= 1400;
+  const cw = big ? 1080 : 720;
+  const ch = big ? 1920 : 1280;
+  const c = el.view;
+  c.width = cw; c.height = ch;
   const x = c.getContext('2d');
   cropTimer = setInterval(() => {
-    const v = el.preview;
-    if (!v.videoWidth) return;
-    const k = Math.max(720 / v.videoWidth, 1280 / v.videoHeight);
-    const dw = v.videoWidth * k; const dh = v.videoHeight * k;
-    x.drawImage(v, (720 - dw) / 2, (1280 - dh) / 2, dw, dh);
+    const vw = v.videoWidth; const vh = v.videoHeight;
+    if (!vw) return;
+    const kc = Math.max(cw / vw, ch / vh);
+    const kf = Math.min(cw / vw, ch / vh);
+    const k = kc + (kf - kc) * FRAMES[cfg.frame];
+    if (k < kc - 1e-3) {
+      x.drawImage(v, (cw - vw * kc) / 2, (ch - vh * kc) / 2, vw * kc, vh * kc);
+      x.fillStyle = 'rgba(0,0,0,.65)';
+      x.fillRect(0, 0, cw, ch);
+    }
+    x.drawImage(v, (cw - vw * k) / 2, (ch - vh * k) / 2, vw * k, vh * k);
   }, 33);
   const cs = c.captureStream(30);
   stream.getAudioTracks().forEach((t) => cs.addTrack(t));
-  recStream = cs; recDims = { w: 720, h: 1280 };
+  recStream = cs; recDims = { w: cw, h: ch };
+}
+
+async function widestLens(s) {
+  try {
+    const vt = s.getVideoTracks()[0];
+    const caps = vt.getCapabilities?.();
+    if (caps?.zoom) await vt.applyConstraints({ advanced: [{ zoom: caps.zoom.min }] }).catch(() => {});
+    if (cfg.cam !== 'environment' || cfg.frame === 'tight') return s;
+    const cams = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
+    const uw = cams.find((d) => /ultra.?wide/i.test(d.label));
+    if (!uw || vt.getSettings().deviceId === uw.deviceId) return s;
+    const v = await navigator.mediaDevices.getUserMedia({
+      video: { deviceId: { exact: uw.deviceId }, width: { ideal: 1080 }, height: { ideal: 1440 }, frameRate: { ideal: 30 } },
+    });
+    s.getVideoTracks().forEach((t) => { t.stop(); s.removeTrack(t); });
+    s.addTrack(v.getVideoTracks()[0]);
+  } catch (e) { console.warn('wide lens failed', e); }
+  return s;
 }
 
 async function startCamera() {
@@ -225,13 +249,15 @@ async function startCamera() {
     if (!navigator.mediaDevices?.getUserMedia) throw new Error('Camera needs HTTPS. Open the https:// link.');
     stream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: false },
-      video: { facingMode: { ideal: cfg.cam }, width: { ideal: 1080 }, height: { ideal: 1920 }, aspectRatio: { ideal: RATIO }, frameRate: { ideal: 30 } },
+      video: { facingMode: { ideal: cfg.cam }, width: { ideal: 1080 }, height: { ideal: 1440 }, frameRate: { ideal: 30 } },
     });
     stream = await matchMic(stream);
+    stream = await widestLens(stream);
   }
   el.preview.srcObject = stream;
-  el.preview.classList.toggle('mirror', cfg.cam === 'user' && !DEMO);
+  el.view.classList.toggle('mirror', cfg.cam === 'user' && !DEMO);
   await el.preview.play().catch(() => {});
+  await new Promise((r) => { if (el.preview.videoWidth) r(); else { el.preview.onloadedmetadata = r; setTimeout(r, 1500); } });
   buildRecStream();
   setupVAD();
   el.micName.textContent = DEMO ? 'Mic: demo tone' : micLabel ? `Mic: ${micLabel}` : '';
@@ -245,6 +271,16 @@ async function applyTorch(quiet) {
   try { await vt?.applyConstraints({ advanced: [{ torch: cfg.light }] }); }
   catch { if (cfg.light && !quiet) toast('Rear torch is not supported on this device.'); }
 }
+
+const frameNames = { tight: 'Tight', wide: 'Wide', full: 'Full' };
+el.zoomBtn.textContent = frameNames[cfg.frame];
+el.zoomBtn.addEventListener('click', async () => {
+  const order = ['tight', 'wide', 'full'];
+  cfg.frame = order[(order.indexOf(cfg.frame) + 1) % order.length];
+  store.set('frame', cfg.frame);
+  el.zoomBtn.textContent = frameNames[cfg.frame];
+  if (cfg.cam === 'environment' && stream && !DEMO && !S.running) { try { await startCamera(); } catch { /* ignore */ } }
+});
 
 el.lightBtn.addEventListener('click', () => {
   cfg.light = !cfg.light;

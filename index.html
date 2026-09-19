@@ -45,6 +45,7 @@
     <section id="stage" class="screen" data-state="idle">
       <div id="frame" class="frame">
         <video id="preview" playsinline muted autoplay></video>
+        <canvas id="view"></canvas>
         <div class="shade"></div>
         <div class="prompt">
           <div id="line" class="line"></div>
@@ -56,6 +57,7 @@
         <button id="backBtn" class="ghost">&lsaquo; Script</button>
         <div id="status" class="pill"></div>
         <div class="grp">
+          <button id="zoomBtn" class="ghost">Wide</button>
           <button id="lightBtn" class="ghost">Light</button>
           <button id="flipBtn" class="ghost">Flip</button>
         </div>
