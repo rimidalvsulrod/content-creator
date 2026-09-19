@@ -1,27 +1,93 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1a1a1a" />
-    <meta name="description" content="Record content with teleprompter and automatic editing" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Content Creator" />
-    <link rel="apple-touch-icon" href="/icon-192x192.png" />
-    <link rel="manifest" href="/manifest.json" />
-    <title>Content Creator - Teleprompter Recording</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').catch(err => {
-          console.log('Service Worker registration failed:', err);
-        });
-      }
-    </script>
-  </body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Prompter" />
+  <link rel="apple-touch-icon" href="/icon-180.png" />
+  <link rel="icon" type="image/png" href="/icon-192.png" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <title>Prompter</title>
+</head>
+<body>
+  <main id="app">
+    <section id="setup" class="screen active">
+      <div class="scroll">
+        <h1>Prompter</h1>
+        <p class="sub">Paste your script and press record once. It records each part, takes a 5 second break, and stitches every clip into one MP4.</p>
+
+        <label for="script">Script <span class="hint">one line = one clip &middot; long lines are split automatically</span></label>
+        <textarea id="script" rows="9" spellcheck="false" placeholder="Stop scrolling, this takes 10 seconds.&#10;Here is the one thing nobody tells you about editing.&#10;Follow for part two."></textarea>
+
+        <label>Pacing</label>
+        <div class="seg" id="modeSeg">
+          <button data-mode="auto">Speaking speed</button>
+          <button data-mode="fixed">Fixed time / clip</button>
+        </div>
+        <div class="row" id="autoRow"><input type="range" id="wpm" min="90" max="220" step="5" /><output id="wpmOut"></output></div>
+        <div class="row" id="fixedRow"><input type="range" id="secs" min="3" max="60" step="1" /><output id="secsOut"></output></div>
+
+        <label>Camera</label>
+        <div class="seg" id="camSeg">
+          <button data-cam="user">Front</button>
+          <button data-cam="environment">Back</button>
+        </div>
+
+        <div id="summary" class="summary"></div>
+      </div>
+      <div class="bar"><button id="openCam" class="primary">Open camera</button></div>
+    </section>
+
+    <section id="stage" class="screen" data-state="idle">
+      <video id="preview" playsinline muted autoplay></video>
+      <div class="shade"></div>
+      <div class="top">
+        <button id="backBtn" class="ghost">&lsaquo; Script</button>
+        <div id="status" class="pill"></div>
+        <button id="flipBtn" class="ghost">Flip</button>
+      </div>
+      <div class="prompt">
+        <div id="line" class="line"></div>
+        <div id="next" class="next"></div>
+      </div>
+      <div id="bigNum" class="bignum" hidden></div>
+      <div class="bottom">
+        <div class="track"><i id="fill"></i></div>
+        <div class="ctrl">
+          <button id="skipBtn" class="ghost" hidden>Skip break</button>
+          <button id="recBtn" class="rec" aria-label="Record"><i></i></button>
+          <button id="stopBtn" class="ghost" hidden>Finish</button>
+        </div>
+        <div id="hint" class="hint2"></div>
+      </div>
+    </section>
+
+    <section id="processing" class="screen center">
+      <div class="spinner"></div>
+      <h2 id="pText">Editing your clips&hellip;</h2>
+      <p id="pSub" class="sub"></p>
+    </section>
+
+    <section id="result" class="screen">
+      <div class="scroll">
+        <h1>Your video</h1>
+        <video id="resultVideo" controls playsinline></video>
+        <p id="resultMeta" class="sub"></p>
+        <div id="errBox" class="err" hidden></div>
+        <div id="rawList" class="rawlist" hidden></div>
+      </div>
+      <div class="bar col">
+        <button id="shareBtn" class="primary" hidden>Save / Share video</button>
+        <button id="dlBtn" class="secondary">Download MP4</button>
+        <button id="againBtn" class="ghost wide">New recording</button>
+      </div>
+    </section>
+  </main>
+  <div id="toast" hidden></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
 </html>
