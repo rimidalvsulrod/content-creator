@@ -43,26 +43,33 @@
     </section>
 
     <section id="stage" class="screen" data-state="idle">
-      <video id="preview" playsinline muted autoplay></video>
-      <div class="shade"></div>
+      <div id="frame" class="frame">
+        <video id="preview" playsinline muted autoplay></video>
+        <div class="shade"></div>
+        <div class="prompt">
+          <div id="line" class="line"></div>
+          <div id="next" class="next"></div>
+        </div>
+        <div id="bigNum" class="bignum" hidden></div>
+      </div>
       <div class="top">
         <button id="backBtn" class="ghost">&lsaquo; Script</button>
         <div id="status" class="pill"></div>
-        <button id="flipBtn" class="ghost">Flip</button>
+        <div class="grp">
+          <button id="lightBtn" class="ghost">Light</button>
+          <button id="flipBtn" class="ghost">Flip</button>
+        </div>
       </div>
-      <div class="prompt">
-        <div id="line" class="line"></div>
-        <div id="next" class="next"></div>
-      </div>
-      <div id="bigNum" class="bignum" hidden></div>
       <div class="bottom">
         <div class="track"><i id="fill"></i></div>
         <div class="ctrl">
-          <button id="skipBtn" class="ghost" hidden>Skip break</button>
+          <button id="skipBtn" class="ghost" hidden>Skip</button>
+          <button id="redoBtn" class="ghost" hidden>Redo clip</button>
           <button id="recBtn" class="rec" aria-label="Record"><i></i></button>
           <button id="stopBtn" class="ghost" hidden>Finish</button>
         </div>
-        <div id="hint" class="hint2"></div>
+        <div class="hint2"><span id="hint"></span><span class="meter"><i id="meter"></i></span></div>
+        <div id="micName" class="hint2 mic"></div>
       </div>
     </section>
 
